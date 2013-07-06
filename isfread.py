@@ -3,25 +3,39 @@
 
 """ Python script for read data from a Tektronix ".ISF" files.
 
-This module contain a function to read an ISF file from Tektronix Oscilloscope 
-instruments. 
+Python script for reading binary ISF files from TDS series Tektronix 
+Oscilloscope instruments. 
 
-It can be run as an script:: 
+SCRIPT:
+=======
+
+It can be run as an script from the command line converting the ISF file into a
+two columns ASCII file: 
 
     $python isfread.py blablabla.isf > outputfile.dat
 
+
+PYTHON MODULE: 
+==============
+
+This module contains the function isfread which expect the name of the ISF file 
+an unique input argument and retrive a tuple with the x-y columns and a 
+dictionary with the head information.
+
 ----------------------------------------------------------------------------
-ISF-file is detailed in the Tektronix "Programmer Manual". 
+About ISF files and this code
+=============================
+This code is base on the similar code for Matlab isfread.m from John 
+Lipp [Lipp]. Information on ISF-file is detailed in the Tektronix "Programmer 
+Manual" [TekMan]. 
 
 References:
-[Lipp04] John Lipp - isfread.m matlab code.
+[Lipp] John Lipp - isfread.m matlab code.
             www.mathworks.com/matlabcentral/fileexchange/6247
 [TekMan] Tektronix Manuals, "Programmer Manual. TDS3000, TDS3000B, and  
             TDS3000C Series Digital Phosphor Oscilloscopes", 071-0381-03.
             www.tektronix.com
-
-----------------------------------------------------------------------------
-Based on isfread.m matlab script written by John Lipp 2004. 
+---------------------------------------------------------------------------
 
 Contact: Gustavo Pasquevich, Universidad Nacional de La Plata - Argentina
          gpasquev@fisica.unlp.edu.ar
