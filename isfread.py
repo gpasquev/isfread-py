@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 #coding: utf-8
 
-""" Load binary data from a Tektronix ".ISF" file.
+""" Python scripy for loading data from a Tektronix ".ISF" files.
+
+This module contain a function to read an ISF file from Tektronix Oscilloscope 
+instruments. 
 
 input: 
 string with the ISF-filename.
