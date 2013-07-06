@@ -1,0 +1,25 @@
+Python script for read data from a Tektronix ".ISF" files
+----------------------------------------------------------
+
+Python script for reading binary ISF files from TDS series Tektronix 
+Oscilloscope instruments. 
+
+
+Short usage example
+--------------------
+In command line::
+
+    $ python isfread.py file.isf > ascii.dat 
+
+Author
+------
+Gustavo Pasquevich - 2011 
+UNLP-CONICET-Argentina
+
+keywords: ISF, TekTronix, isfread, python
+
+Acknowledgment
+--------------
+
+Based on matab script isfread.m from Jhon Lipp. 
+

@@ -43,8 +43,7 @@ Contact: Gustavo Pasquevich, Universidad Nacional de La Plata - Argentina
 
 import struct
 
-
-__version__= 0.2
+__version__= '0.3'  
 __author__= 'Gustavo Pasquevich (2011)'
 __email__= 'gpasquev@fisica.unlp.edu.ar'
 
