@@ -1,22 +1,18 @@
 #!/usr/bin/env python
 #coding: utf-8
 
-""" Python scripy for loading data from a Tektronix ".ISF" files.
+""" Python script for read data from a Tektronix ".ISF" files.
 
 This module contain a function to read an ISF file from Tektronix Oscilloscope 
 instruments. 
 
-input: 
-string with the ISF-filename.
+It can be run as an script:: 
 
-utput:
-Returns a tuple of three elements:
-x - list with the x values 
-y - list with the y values
-head - dictionary with the head-information stored in the file.
+    $python isfread.py blablabla.isf > outputfile.dat
 
-ISF-file is detailed in the Tektronix "Programmer Manual". 
 ----------------------------------------------------------------------------
+ISF-file is detailed in the Tektronix "Programmer Manual". 
+
 References:
 [Lipp04] John Lipp - isfread.m matlab code.
             www.mathworks.com/matlabcentral/fileexchange/6247
@@ -31,16 +27,26 @@ Contact: Gustavo Pasquevich, Universidad Nacional de La Plata - Argentina
          gpasquev@fisica.unlp.edu.ar
                                                                          """
 
+import struct
+
+
 __version__= 0.2
 __author__= 'Gustavo Pasquevich (2011)'
 __email__= 'gpasquev@fisica.unlp.edu.ar'
 
 def isfread(filename):
+    """ Read isf file and return x y and head information.
+    
+    input: 
+        string with the ISF-filename.
 
-    import struct
+    output:
+        Returns a tuple of three elements:
+        x - list with the x values 
+        y - list with the y values
+        head - dictionary with the head-information stored in the file."""
 
     FID = open(filename,'r')
-
 
     hdata = FID.read(511);		# read first 511 bytes
 
