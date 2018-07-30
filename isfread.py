@@ -107,13 +107,6 @@ def isfread(filename):
                 'yoff': getnum(hdata,b'YOFF'),
                 'npts': getnum(hdata,b'NR_PT')}
 
-        # The only cases that this code (at this moment) not take into acount.
-        if ((head['bytenum'] != 2) or (head['bitnum'] != 16) or
-        cmp(head['encoding'],'BIN') or cmp(head['binformat'],'RI') or
-        cmp(head['pointformat'],'Y')):
-            FID.close()
-            print('Unable to process IFS file.')
-
         # Reading the <Block> part corresponding to the "CURVe" command [TekMan].
         # <Block> = ":CURVE #<x><yy..y><data>"
         # <x> number of bytes defining <yy..y>
