@@ -4,11 +4,11 @@ Python script for read data from a Tektronix ".ISF" files
 Python script for ascii-converting binary ISF files from TDS series Tektronix 
 Oscilloscope instruments. 
 
-Short usage example (for Python2x)
+Short usage example (for Python3.x)
 --------------------
-In linux command line (convert .isf to .dat)::
+In linux command line (convert .isf to .csv)::
 
-    $ python isfread.py file.isf > ascii.dat 
+    $ python isfread.py file.isf -o ascii.csv 
 
 --------------------
 As the python module::
@@ -18,18 +18,17 @@ As the python module::
     >>> data, header = isfread('file.isf')
     >>> 
 
-
-Short usage example (for Python3x)
+Short usage example (for Python2.x)
 --------------------
-In linux command line (convert .isf to .csv)::
+In linux command line (convert .isf to .dat)::
 
-    $ python isfread_py3.py file.isf -o ascii.csv 
+    $ python isfread_py2.py file.isf > ascii.dat 
 
 --------------------
 As the python module::
 
     $ python 
-    >>> from isfread_py3 import isfread
+    >>> from isfread_py2 import isfread
     >>> data, header = isfread('file.isf')
     >>> 
 
