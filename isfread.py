@@ -61,7 +61,17 @@ References:
 
 Contact: Gustavo Pasquevich, Universidad Nacional de La Plata - Argentina
          gpasquev@fisica.unlp.edu.ar
+
+         https://github.com/gpasquev/isfread-py
+
+         see also
+         https://github.com/a-card/isfread-py (version 0.4)
+
+## RA local changes ##
 """
+
+__version__ = '0.6.0'
+__author__ = 'Gustavo Pasquevich, RA'
 
 import struct
 import sys
@@ -70,36 +80,6 @@ import argparse
 
 
 def isfread(filename, verbose=False, debug=False):
-    fileInput = open(filename,'rb')
-    bytesHeader = fileInput.read(511); # read first 511 bytes
-    
-    """
-    The version of the ISF file can be determined by finding ':CURV #' or ':CURVE #' in the Header.
-    If Header includes ':CURV #', the ISF file is new version.
-    else if Header includes ':CURVE #', the ISF file is older version.
-    """
-    key = ':CURV #'
-    intLocationOfColon = bytesHeader.find(key.encode())
-    keylength = len(key)
-    older_version = False
-    if intLocationOfColon == -1:
-        key = ':CURVE #'
-        intLocationOfColon = bytesHeader.find(key.encode())
-        keylength = len(key)
-        older_version = True
-    if intLocationOfColon == -1:
-        sys.exit('error: can`t find ":CURV #" nor ":CURVE #".')
-
-    intNofDigits = int (chr (bytesHeader[intLocationOfColon+keylength]) )
-    bytesHeader = bytesHeader[0: (intLocationOfColon+keylength+1+intNofDigits)]
-    bytesHeader = bytesHeader.decode('utf-8')
-
-    if debug:
-        print ('DEBUG information ----------')
-        print ('    type(bytesHeader) is ', end='')
-        print (type(bytesHeader))
-        print ('    bytesHeader  = %s' % bytesHeader )
-        print ('------------------------ end')
 
     # Subroutines used to extract inrormation from the head --------------------
     def cmp(a, b):
@@ -131,124 +111,161 @@ def isfread(filename, verbose=False, debug=False):
         n3=string.find('"',n2+1)
         return string[n2+1:n3]    
     #---------------------------------------------------------------------------
-    
-    # tuple 'tupleHeader' contains information stored in the header of file with dictionary.
-    if older_version:
-        tupleHeader={'bytenum': getnum(bytesHeader,'BYT_NR'),
-                'bitnum':  getnum(bytesHeader,'BIT_NR'),
-                'encoding':  getstr(bytesHeader,'ENCDG'),
-                'binformat': getstr(bytesHeader,'BN_FMT'),
-                'byteorder': getstr(bytesHeader,'BYT_OR'),
-                'wfid': getquotedstr(bytesHeader,'WFID'),
-                'pointformat': getstr(bytesHeader,'PT_FMT'),
-                'xunit': getquotedstr(bytesHeader,'XUNIT'),
-                'yunit': getquotedstr(bytesHeader,'YUNIT'),
-                'xzero': getnum(bytesHeader,'XZERO'),
-                'xincr': getnum(bytesHeader,'XINCR'),
-                'ptoff': getnum(bytesHeader,'PT_OFF'),
-                'ymult': getnum(bytesHeader,'YMULT'),
-                'yzero': getnum(bytesHeader,'YZERO'),
-                'yoff': getnum(bytesHeader,'YOFF'),
-                'npts': getnum(bytesHeader,'NR_PT')}
-    else:
-        tupleHeader={'bytenum': getnum(bytesHeader,'BYT_N'),
-            'bitnum':  getnum(bytesHeader,'BIT_N'), 
-            'encoding':  getstr(bytesHeader,'ENC'),
-            'binformat': getstr(bytesHeader,'BN_F'),
-            'byteorder': getstr(bytesHeader,'BYT_O'),
-            'wfid': getquotedstr(bytesHeader,'WFI'),
-            'pointformat': getstr(bytesHeader,'PT_F'),
-            'xunit': getquotedstr(bytesHeader,'XUN'),
-            'yunit': getquotedstr(bytesHeader,'YUN'),
-            'xzero': getnum(bytesHeader,'XZE'), 
-            'xincr': getnum(bytesHeader,'XIN'),
-            'ptoff': getnum(bytesHeader,'PT_O'),
-            'ymult': getnum(bytesHeader,'YMU'),
-            'yzero': getnum(bytesHeader,'YZE'),
-            'yoff': getnum(bytesHeader,'YOF'),
-            'npts': getnum(bytesHeader,'NR_P')}
 
-    # The only cases that this code (at this moment) not take into acount.
-    # if older_version:
-    #     print(tupleHeader['bytenum'])
-    #     print(tupleHeader['bitnum'])
-    #     print(tupleHeader['encoding'],'BINARY')
-    #     print(tupleHeader['binformat'],'RI')
-    #     exit()
-    #     if ((tupleHeader['bytenum'] != 2) or (tupleHeader['bitnum'] != 16) or
-    #     cmp(tupleHeader['encoding'],'BINARY') or cmp(tupleHeader['binformat'],'RI')):
-    #         fileInput.close()
-    #         sys.exit('Unable to process IFS file.')
-    # else:
-    #     print(tupleHeader['bytenum'])
-    #     print(tupleHeader['bitnum'])
-    #     print(tupleHeader['encoding'],'BINARY')
-    #     print(tupleHeader['binformat'],'RI')
-    #     exit()
-    #     if ((tupleHeader['bytenum'] != 2) or (tupleHeader['bitnum'] != 16) or 
-    #     cmp(tupleHeader['encoding'],'BIN') or cmp(tupleHeader['binformat'],'RI')):
-    #         fileInput.close()
-    #         sys.exit('Unable to process IFS file.')
-         
-    # Skipping the #<x><yy...y> part of the <Block> bytes
-    fileInput.seek(intLocationOfColon+keylength+1)
-    intNofDataBytes =  int(fileInput.read(intNofDigits))
-    
-    # information from the tupleHeader needed to read and to convert the data
-    npts = tupleHeader['npts']
-    yzero= tupleHeader['yzero']
-    ymult= tupleHeader['ymult']
-    xzero= tupleHeader['xzero']
-    xincr= tupleHeader['xincr']
-    ptoff= tupleHeader['ptoff']
-    yoff = tupleHeader['yoff']
+    with open(filename,'rb') as fileInput:
 
-    dict_endian = {             # Dictionary to converts significant bit infor-  
-               'MSB': '>',      # mation to struct module definitions.
-               'LSB': '<' 
-             }
-    fmt = dict_endian[tupleHeader['byteorder']] + str(npts) + 'h'
-
-    intCalculatedNofBytes=struct.calcsize(fmt)
-
-    # "intNofDataBytes" is the number of bytes to be readed directly from Tek-ISF-file.
-    # Meanwhile "intCalculatedNofBytes" is the number of bytes to be readed calculated through:
-    #                    NumOfPoints x BytePerPoint 
-    if intNofDataBytes != intCalculatedNofBytes:
-        sys.exit('error: intNofDataBytes != intCalculatedNofBytes.')
+        bytesHeader = fileInput.read(511); # read first 511 bytes
         
-    string_data=fileInput.read(intCalculatedNofBytes)
-    string_data2=fileInput.read(intCalculatedNofBytes)
-    data=struct.unpack(fmt, string_data)
+        """
+        The version of the ISF file can be determined by finding ':CURV #' or ':CURVE #' in the Header.
+        If Header includes ':CURV #', the ISF file is new version.
+        else if Header includes ':CURVE #', the ISF file is older version.
+        """
+        key = ':CURV #'
+        intLocationOfColon = bytesHeader.find(key.encode())
+        keylength = len(key)
+        older_version = False
+        if intLocationOfColon == -1:
+            key = ':CURVE #'
+            intLocationOfColon = bytesHeader.find(key.encode())
+            keylength = len(key)
+            older_version = True
+        if intLocationOfColon == -1:
+            sys.exit('error: can`t find ":CURV #" nor ":CURVE #".')
 
-    if debug:
-        print ('DEBUG information ----------')
-        print ('    intNofDataBytes = %d, intCalculatedNofBytes = %d' %(intNofDataBytes,intCalculatedNofBytes))
-        print ('    type(intNofDataBytes) is ', type(intNofDataBytes))
-        print ('    type(intCalculatedNofBytes) is ', type(intCalculatedNofBytes))
-        print ('    type(string_data) is ', type(string_data))
-        print ('    len(string_data) is ', len(string_data))
-        print ('    type(data) is ', type(data))
-        print ('    len(data) is ', len(data))
-        print ('------------------------ end')
+        intNofDigits = int (chr (bytesHeader[intLocationOfColon+keylength]) )
+        bytesHeader = bytesHeader[0: (intLocationOfColon+keylength+1+intNofDigits)]
+        bytesHeader = bytesHeader.decode('utf-8')
 
-    # output calculated values as tuple
-    if cmp(tupleHeader['pointformat'],'Y') == 0:    # pointformat == 'Y'
-        listTime =[xzero + xincr*(i-ptoff) for i in range(npts)]
-        listValue =[yzero + ymult*(y-yoff) for y in data]
-        ndarrayValue = np.array([listTime, listValue])
-        fileInput.close()
+        if debug:
+            print ('DEBUG information ----------')
+            print ('    type(bytesHeader) is ', end='')
+            print (type(bytesHeader))
+            print ('    bytesHeader  = %s' % bytesHeader )
+            print ('------------------------ end')
+        
+        # tuple 'tupleHeader' contains information stored in the header of file with dictionary.
+        if older_version:
+            tupleHeader={'bytenum': getnum(bytesHeader,'BYT_NR'),
+                    'bitnum':  getnum(bytesHeader,'BIT_NR'),
+                    'encoding':  getstr(bytesHeader,'ENCDG'),
+                    'binformat': getstr(bytesHeader,'BN_FMT'),
+                    'byteorder': getstr(bytesHeader,'BYT_OR'),
+                    'wfid': getquotedstr(bytesHeader,'WFID'),
+                    'pointformat': getstr(bytesHeader,'PT_FMT'),
+                    'xunit': getquotedstr(bytesHeader,'XUNIT'),
+                    'yunit': getquotedstr(bytesHeader,'YUNIT'),
+                    'xzero': getnum(bytesHeader,'XZERO'),
+                    'xincr': getnum(bytesHeader,'XINCR'),
+                    'ptoff': getnum(bytesHeader,'PT_OFF'),
+                    'ymult': getnum(bytesHeader,'YMULT'),
+                    'yzero': getnum(bytesHeader,'YZERO'),
+                    'yoff': getnum(bytesHeader,'YOFF'),
+                    'npts': getnum(bytesHeader,'NR_PT')}
+        else:
+            tupleHeader={'bytenum': getnum(bytesHeader,'BYT_N'),
+                'bitnum':  getnum(bytesHeader,'BIT_N'), 
+                'encoding':  getstr(bytesHeader,'ENC'),
+                'binformat': getstr(bytesHeader,'BN_F'),
+                'byteorder': getstr(bytesHeader,'BYT_O'),
+                'wfid': getquotedstr(bytesHeader,'WFI'),
+                'pointformat': getstr(bytesHeader,'PT_F'),
+                'xunit': getquotedstr(bytesHeader,'XUN'),
+                'yunit': getquotedstr(bytesHeader,'YUN'),
+                'xzero': getnum(bytesHeader,'XZE'), 
+                'xincr': getnum(bytesHeader,'XIN'),
+                'ptoff': getnum(bytesHeader,'PT_O'),
+                'ymult': getnum(bytesHeader,'YMU'),
+                'yzero': getnum(bytesHeader,'YZE'),
+                'yoff': getnum(bytesHeader,'YOF'),
+                'npts': getnum(bytesHeader,'NR_P')}
 
-    elif cmp(tupleHeader['pointformat'],'ENV') == 0:    # pointformat == 'ENV'
-        npts = int(npts / 2.)
-        listTime =[xzero + xincr*(i-ptoff)*2 for i in range(npts)]
-        listMinValue =[yzero + ymult*(y-yoff) for y in data[0:len(data):2]]
-        listMaxValue =[yzero + ymult*(y-yoff) for y in data[1:len(data):2]]
-        ndarrayValue = np.array([listTime, listMinValue, listMaxValue])
-        fileInput.close()
+        # The only cases that this code (at this moment) not take into acount.
+        # if older_version:
+        #     print(tupleHeader['bytenum'])
+        #     print(tupleHeader['bitnum'])
+        #     print(tupleHeader['encoding'],'BINARY')
+        #     print(tupleHeader['binformat'],'RI')
+        #     exit()
+        #     if ((tupleHeader['bytenum'] != 2) or (tupleHeader['bitnum'] != 16) or
+        #     cmp(tupleHeader['encoding'],'BINARY') or cmp(tupleHeader['binformat'],'RI')):
+        #         sys.exit('Unable to process IFS file.')
+        # else:
+        #     print(tupleHeader['bytenum'])
+        #     print(tupleHeader['bitnum'])
+        #     print(tupleHeader['encoding'],'BINARY')
+        #     print(tupleHeader['binformat'],'RI')
+        #     exit()
+        #     if ((tupleHeader['bytenum'] != 2) or (tupleHeader['bitnum'] != 16) or 
+        #     cmp(tupleHeader['encoding'],'BIN') or cmp(tupleHeader['binformat'],'RI')):
+        #         sys.exit('Unable to process IFS file.')
+            
+        # Skipping the #<x><yy...y> part of the <Block> bytes
+        fileInput.seek(intLocationOfColon+keylength+1)
+        intNofDataBytes =  int(fileInput.read(intNofDigits))
+        
+        # information from the tupleHeader needed to read and to convert the data
+        npts = tupleHeader['npts']
+        yzero= tupleHeader['yzero']
+        ymult= tupleHeader['ymult']
+        xzero= tupleHeader['xzero']
+        xincr= tupleHeader['xincr']
+        ptoff= tupleHeader['ptoff']
+        yoff = tupleHeader['yoff']
 
-    else:
-        sys.exit('error: plotformat != "Y" or "ENV".')
+        dict_endian = {             # Dictionary to converts significant bit infor-  
+                'MSB': '>',      # mation to struct module definitions.
+                'LSB': '<' 
+                }
+        fmt = dict_endian[tupleHeader['byteorder']] + str(npts)
+
+        if tupleHeader['bytenum']==2:
+             fmt += 'h'
+        elif tupleHeader['bytenum']==1:
+            fmt += 'b'
+
+        intCalculatedNofBytes=struct.calcsize(fmt)
+
+        if debug:
+            print ('DEBUG information ----------')
+            print ('    intNofDataBytes = %d, intCalculatedNofBytes = %d' %(intNofDataBytes,intCalculatedNofBytes))
+            print ('    type(intNofDataBytes) is ', type(intNofDataBytes))
+            print ('    type(intCalculatedNofBytes) is ', type(intCalculatedNofBytes))
+            print ('------------------------ end')
+
+        # "intNofDataBytes" is the number of bytes to be readed directly from Tek-ISF-file.
+        # Meanwhile "intCalculatedNofBytes" is the number of bytes to be readed calculated through:
+        #                    NumOfPoints x BytePerPoint 
+        if intNofDataBytes != intCalculatedNofBytes:
+            sys.exit('error: intNofDataBytes != intCalculatedNofBytes.')
+            
+        string_data=fileInput.read(intCalculatedNofBytes)
+        string_data2=fileInput.read(intCalculatedNofBytes)
+        data=struct.unpack(fmt, string_data)
+
+        if debug:
+            print ('DEBUG information ----------')
+            print ('    type(string_data) is ', type(string_data))
+            print ('    len(string_data) is ', len(string_data))
+            print ('    type(data) is ', type(data))
+            print ('    len(data) is ', len(data))
+            print ('------------------------ end')
+
+        # output calculated values as tuple
+        if cmp(tupleHeader['pointformat'],'Y') == 0:    # pointformat == 'Y'
+            listTime =[xzero + xincr*(i-ptoff) for i in range(npts)]
+            listValue =[yzero + ymult*(y-yoff) for y in data]
+            ndarrayValue = np.array([listTime, listValue])
+
+        elif cmp(tupleHeader['pointformat'],'ENV') == 0:    # pointformat == 'ENV'
+            npts = int(npts / 2.)
+            listTime =[xzero + xincr*(i-ptoff)*2 for i in range(npts)]
+            listMinValue =[yzero + ymult*(y-yoff) for y in data[0:len(data):2]]
+            listMaxValue =[yzero + ymult*(y-yoff) for y in data[1:len(data):2]]
+            ndarrayValue = np.array([listTime, listMinValue, listMaxValue])
+
+        else:
+            sys.exit('error: plotformat != "Y" or "ENV".')
 
     if verbose or debug:
         print ('isfread() exited successfully ---------------------------------------------------------------')
